@@ -1,0 +1,45 @@
+.dashboard {
+    .dashboard-action{
+        margin: 20px 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(320px,1fr));
+        grid-auto-rows: auto;
+        grid-column-gap: 30px;
+        grid-row-gap: 15px;
+        .card{
+            text-align: center;
+            height: initial;
+            width: 125px;
+            padding: 20px;
+            p{
+                margin-bottom: 0;
+            }
+        }
+        .card:hover{
+            //cursor: pointer;
+        }
+    }
+    .page-footer{
+        padding-top: 0px !important;
+        border-top: 1px solid hsla(0,0%,63.5%,.2);
+        .content{
+            .page-header{
+                padding-top: 0px !important;
+
+            }
+        }
+    }
+}
+
+.newAPI{
+    .page-content{
+        text-align: center;
+        label{
+            width: 100%;
+        }
+        .control-group{
+            margin: auto ;
+            margin-bottom: 15px;
+        }
+    }
+}
