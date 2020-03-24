@@ -35,5 +35,7 @@
 <li>[x] UI</li>
 <li>[x] Made connection with Printful API</li>
 <li>[x] Make a landingpage to insert Printful API key</li>
-<li>[ ] Insert Printful products to Bagisto DB (Sync)</li>
+<li>[x] Insert Printful products to Bagisto DB (Sync)</li>
+<li>[ ] Insert Pictures to bagisto</li>
+<li>[ ] Handle Error Exceptions</li>
 </ul>
