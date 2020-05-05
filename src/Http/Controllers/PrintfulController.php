@@ -7,6 +7,7 @@ namespace SamiXSous\Printful\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Storage;
 use SamiXSous\Printful\Facades\Printful;
 use SamiXSous\Printful\Models\PrintfulKey;
 
@@ -125,6 +126,12 @@ class PrintfulController extends Controller
         foreach ($storeProducts as $storeProduct) {
             $productId = $storeProduct['id'];
             $productName = $storeProduct['name'];
+//            $productImageURL = $storeProduct['image'];
+
+//            $imageContent = file_get_contents($productImageURL);
+//            $name = substr($productImageURL, strrpos($productImageURL, '/') + 1);
+//            Storage::put( 'product/' . $productId . '/' . $name, $imageContent);
+
             $syncData['type'] = "configurable";
             $syncData['attribute_family_id'] = "1";
             $syncData['sku'] = $productId;
@@ -132,29 +139,19 @@ class PrintfulController extends Controller
             $syncData['family'] = "1";
 
 
+
+
             $productVariants = Printful::get('store/products/'. $productId);
             foreach ($productVariants['sync_variants'] as $productVariant){
                 $size = trim($productVariant['name'], $productName . ' - ');
                 $sizeId = DB::table('attribute_options')->where('admin_name', $size)->first()->id;
-//                dump($productVariant);
-                $variantData = [
-                    "sku" => $productVariant['sync_product_id'] . '-variant-' . $sizeId,
-                    "name" => $productVariant['name'],
-                    "size" => "{$sizeId}",
-                    "inventories" => ["0"],
-                    "price" => $productVariant['retail_price'],
-                    "weight" => "1",
-                    "status" => "1"
-
-                ];
                 array_push($syncData['super_attributes']['size'], "{$sizeId}");
-
-
             }
 
 
             $syncDataId = $this->productRepository->create($syncData)->id;
             $this->syncVariants($syncDataId);
+            return redirect()->route('admin.catalog.products.index');
         }
 
     }
@@ -162,28 +159,31 @@ class PrintfulController extends Controller
     public function syncVariants($id)
     {
         $storeProducts = Printful::get('store/products');
-//        dd($storeProducts);
         // GET ALL PRINTFUL PRODUCTS
         $syncData = [];
         foreach ($storeProducts as $storeProduct) {
             $productId = $storeProduct['id'];
             $productName = $storeProduct['name'];
 
-            $syncVariants['channel'] = "default";
+            $productImageURL = $storeProduct['thumbnail_url'];
+            $imageContent = file_get_contents($productImageURL);
+            $name = substr($productImageURL, strrpos($productImageURL, '/') + 1);
 
+            Storage::put( 'product/' . $id . '/' . $name, $imageContent);
+
+            $syncVariants['channel'] = "default";
             $syncVariants['locale'] = "en";
             $syncVariants['_method'] = "PUT";
             $syncVariants['sku'] = $productId;
             $syncVariants['name'] = $productName;
-            $syncVariants['url_key'] = urlencode($productName);
+            $syncVariants['url_key'] = strtolower(str_replace('+', '-', urlencode($productName)));
             $syncVariants['tax_category_id'] = "";
             $syncVariants['new'] = true;
             $syncVariants['featured'] = true;
-            $syncVariants['visible_individually'] = false;
+            $syncVariants['visible_individually'] = true;
             $syncVariants['status'] = true;
             $syncVariants['guest_checkout'] = true;
             $syncVariants['color'] = "4";
-
             $syncVariants['short_description'] = "";
             $syncVariants['description'] = "";
             $syncVariants['categories'] = ["1"];
@@ -207,14 +207,19 @@ class PrintfulController extends Controller
 
                 ];
                 $syncVariants['variants'][$variantId] = $variantData;
-
             }
-
             $this->productRepository->update($syncVariants, $id);
-
-
+            $this->addImageToDB($id, $name);
         }
-        return redirect()->route('admin.catalog.products.index');
+
+    }
+
+    public function addImageToDB($id, $name){
+        DB::table('product_images')->insert([
+                'type' => null,
+                'path' => 'product/' . $id . '/' . $name,
+                'product_id' => $id
+            ]);
     }
 
 }
