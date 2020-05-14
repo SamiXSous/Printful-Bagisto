@@ -143,14 +143,39 @@ class PrintfulController extends Controller
 
             $productVariants = Printful::get('store/products/'. $productId);
             foreach ($productVariants['sync_variants'] as $productVariant){
-                $size = trim($productVariant['name'], $productName . ' - ');
+
+                $size = str_replace($productName. " - ", "", $productVariant['name']);
+//                dd($productVariant, $productName , $productVariant['name'], $size);
                 $sizeId = DB::table('attribute_options')->where('admin_name', $size)->first()->id;
+                $variantData = [
+                    "sku" => $productVariant['sync_product_id'] . '-variant-' . $sizeId,
+                    "name" => $productVariant['name'],
+                    "size" => "{$sizeId}",
+                    "inventories" => ["0"],
+                    "price" => $productVariant['retail_price'],
+                    "weight" => "1",
+                    "status" => "1"
+
+                ];
                 array_push($syncData['super_attributes']['size'], "{$sizeId}");
             }
 
+            // Check if product already exist if so then update instead of create
+            $checkProduct = DB::table('products')->where('sku', $productId)->first();
+            if($checkProduct != null){
+                // UPDATE PRODUCTS
+            }else{
 
-            $syncDataId = $this->productRepository->create($syncData)->id;
-            $this->syncVariants($syncDataId);
+                $syncDataId = $this->productRepository->create($syncData)->id;
+                $this->syncVariants($syncDataId);
+                $productImageURL = $storeProduct['thumbnail_url'];
+                $imageContent = file_get_contents($productImageURL);
+                $name = substr($productImageURL, strrpos($productImageURL, '/') + 1);
+
+                Storage::put( 'product/' . $syncDataId . '/' . $name, $imageContent);
+                $this->addImageToDB($syncDataId, $name);
+            }
+
             return redirect()->route('admin.catalog.products.index');
         }
 
@@ -165,11 +190,6 @@ class PrintfulController extends Controller
             $productId = $storeProduct['id'];
             $productName = $storeProduct['name'];
 
-            $productImageURL = $storeProduct['thumbnail_url'];
-            $imageContent = file_get_contents($productImageURL);
-            $name = substr($productImageURL, strrpos($productImageURL, '/') + 1);
-
-            Storage::put( 'product/' . $id . '/' . $name, $imageContent);
 
             $syncVariants['channel'] = "default";
             $syncVariants['locale'] = "en";
@@ -193,9 +213,11 @@ class PrintfulController extends Controller
 
             $productVariants = Printful::get('store/products/' . $productId);
             foreach ($productVariants['sync_variants'] as $productVariant) {
-                $size = trim($productVariant['name'], $productName . ' - ');
+                $size = str_replace($productName. " - ", "", $productVariant['name']);
                 $sizeId = DB::table('attribute_options')->where('admin_name', $size)->first()->id;
+//                dd($productVariant, $sizeId,$productVariant['sync_product_id'] . '-variant-' . $sizeId );
                 $variantId = DB::table('products')->where('sku', $productVariant['sync_product_id'] . '-variant-' . $sizeId)->first()->id;
+
                 $variantData = [
                     "sku" => $productVariant['sync_product_id'] . '-variant-' . $sizeId,
                     "name" => $productVariant['name'],
@@ -209,7 +231,6 @@ class PrintfulController extends Controller
                 $syncVariants['variants'][$variantId] = $variantData;
             }
             $this->productRepository->update($syncVariants, $id);
-            $this->addImageToDB($id, $name);
         }
 
     }

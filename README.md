@@ -25,7 +25,20 @@
 <pre><code>&apos;Printful&apos; =&gt; SamiXSous\Printful\Facades\Printful::class</code></pre>
 
 
-<h5 id="once-these-two-lines-have-been-added-you-should-see-a-printful-tab-in-the-admin-section-of-your-bagisto-store%F0%9F%8E%89%F0%9F%A5%B3%F0%9F%99%8C%F0%9F%8F%BC">Once these two lines have been added you should see a Printful tab in the admin section of your Bagisto store!🎉🥳🙌🏼</h5>
+<p>Next we are going to go back to the {bagisto root} folder and run the following command:</p>
+<pre><code>composer require printful/php-api-sdk</code></pre>
+<p>Now we are going to add a line to the composer.json file. In the composer.json file search for psr-4 and add the following to this array:</p>
+<pre><code>"SamiXSous\\Printful\\": "packages/SamiXSous/Printful-Bagisto/src"</code></pre>
+
+<p>Next we are going to add seeding for the plugin. To do this we are going to add lines to the following file {bagisto root}/database/seeds/DatabaseSeeder.php</p>
+<p>First we are going to add the following line outside the class:</p>
+<pre><code>use SamiXSous\Printful\Database\Seeders\DatabaseSeeder as PrintfulDatabaseSeeders;</code></pre>
+<p>After we will add the following in the run function:</p>
+<pre><code>$this->call(PrintfulDatabaseSeeders::class);</code></pre>
+
+<p>Last but not least we will run npm to produce the frontend files needed. Once in the {bagisto root}/packages/SamiXSous/ directory run the code: <pre><code>npm run dev</code></pre> </p>
+
+<h5 id="once-these-two-lines-have-been-added-you-should-see-a-printful-tab-in-the-admin-section-of-your-bagisto-store%F0%9F%8E%89%F0%9F%A5%B3%F0%9F%99%8C%F0%9F%8F%BC">Once these lines have been added and you ran the commands you should see a Printful tab in the admin section of your Bagisto store!🎉🥳🙌🏼</h5>
 
 <h3 id="roadmap">Roadmap</h3>
 
@@ -36,6 +49,6 @@
 <li>[x] Made connection with Printful API</li>
 <li>[x] Make a landingpage to insert Printful API key</li>
 <li>[x] Insert Printful products to Bagisto DB (Sync)</li>
-<li>[ ] Insert Pictures to bagisto</li>
+<li>[x] Insert Pictures to bagisto</li>
 <li>[ ] Handle Error Exceptions</li>
 </ul>
