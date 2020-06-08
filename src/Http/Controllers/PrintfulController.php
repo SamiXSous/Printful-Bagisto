@@ -32,7 +32,6 @@ class PrintfulController extends Controller
      */
     protected $attributeRepository;
 
-
     /**
      * Contains route related configuration
      *
@@ -54,28 +53,12 @@ class PrintfulController extends Controller
      * @return void
      */
 
-    public function __construct(
-        ProductRepository $productRepository
-//        OrderItemRepository $orderItemRepository,
-//        CustomerRepository $customerRepository,
-//        ProductInventoryRepository $productInventoryRepository
-    )
+    public function __construct(ProductRepository $productRepository)
     {
         $this->_config = request('_config');
-
         $this->middleware('admin');
-
         $this->productRepository = $productRepository;
-
-//        $this->orderRepository = $orderRepository;
-//
-//        $this->orderItemRepository = $orderItemRepository;
-//
-//        $this->customerRepository = $customerRepository;
-//
-//        $this->productInventoryRepository = $productInventoryRepository;
     }
-
 
     /**
      * Display a listing of the resource.
@@ -118,34 +101,20 @@ class PrintfulController extends Controller
 
     public function syncStore()
     {
-
         $storeProducts = Printful::get('store/products');
-//        dd($storeProducts);
         // GET ALL PRINTFUL PRODUCTS
         $syncData = [];
         foreach ($storeProducts as $storeProduct) {
             $productId = $storeProduct['id'];
             $productName = $storeProduct['name'];
-//            $productImageURL = $storeProduct['image'];
-
-//            $imageContent = file_get_contents($productImageURL);
-//            $name = substr($productImageURL, strrpos($productImageURL, '/') + 1);
-//            Storage::put( 'product/' . $productId . '/' . $name, $imageContent);
-
             $syncData['type'] = "configurable";
             $syncData['attribute_family_id'] = "1";
             $syncData['sku'] = $productId;
             $syncData['super_attributes']['size'] = [];
             $syncData['family'] = "1";
-
-
-
-
             $productVariants = Printful::get('store/products/'. $productId);
             foreach ($productVariants['sync_variants'] as $productVariant){
-
                 $size = str_replace($productName. " - ", "", $productVariant['name']);
-//                dd($productVariant, $productName , $productVariant['name'], $size);
                 $sizeId = DB::table('attribute_options')->where('admin_name', $size)->first()->id;
                 $variantData = [
                     "sku" => $productVariant['sync_product_id'] . '-variant-' . $sizeId,
@@ -155,92 +124,76 @@ class PrintfulController extends Controller
                     "price" => $productVariant['retail_price'],
                     "weight" => "1",
                     "status" => "1"
-
                 ];
                 array_push($syncData['super_attributes']['size'], "{$sizeId}");
             }
-
             // Check if product already exist if so then update instead of create
             $checkProduct = DB::table('products')->where('sku', $productId)->first();
             if($checkProduct != null){
                 // UPDATE PRODUCTS
             }else{
-
+                info("New Product Created");
                 $syncDataId = $this->productRepository->create($syncData)->id;
-                $this->syncVariants($syncDataId);
+                $this->syncVariants($productId, $syncDataId);
                 $productImageURL = $storeProduct['thumbnail_url'];
                 $imageContent = file_get_contents($productImageURL);
                 $name = substr($productImageURL, strrpos($productImageURL, '/') + 1);
-
                 Storage::put( 'product/' . $syncDataId . '/' . $name, $imageContent);
                 $this->addImageToDB($syncDataId, $name);
             }
-
-            return redirect()->route('admin.catalog.products.index');
         }
-
+        return redirect()->route('admin.catalog.products.index');
     }
 
-    public function syncVariants($id)
+    public function syncVariants($id, $DBId)
     {
-        $storeProducts = Printful::get('store/products');
+        trim($id, "-variant-".[0-9]);
+        $storeProduct = Printful::get("store/products/{$id}");
         // GET ALL PRINTFUL PRODUCTS
         $syncData = [];
-        foreach ($storeProducts as $storeProduct) {
-            $productId = $storeProduct['id'];
-            $productName = $storeProduct['name'];
-
-
-            $syncVariants['channel'] = "default";
-            $syncVariants['locale'] = "en";
-            $syncVariants['_method'] = "PUT";
-            $syncVariants['sku'] = $productId;
-            $syncVariants['name'] = $productName;
-            $syncVariants['url_key'] = strtolower(str_replace('+', '-', urlencode($productName)));
-            $syncVariants['tax_category_id'] = "";
-            $syncVariants['new'] = true;
-            $syncVariants['featured'] = true;
-            $syncVariants['visible_individually'] = true;
-            $syncVariants['status'] = true;
-            $syncVariants['guest_checkout'] = true;
-            $syncVariants['color'] = "4";
-            $syncVariants['short_description'] = "";
-            $syncVariants['description'] = "";
-            $syncVariants['categories'] = ["1"];
-            $syncVariants['variants'] = [];
-            $syncVariants['channels'] = ["1"];
-
-
-            $productVariants = Printful::get('store/products/' . $productId);
-            foreach ($productVariants['sync_variants'] as $productVariant) {
-                $size = str_replace($productName. " - ", "", $productVariant['name']);
-                $sizeId = DB::table('attribute_options')->where('admin_name', $size)->first()->id;
+        $productName = $storeProduct['sync_product']['name'];
+        $syncVariants['channel'] = "default";
+        $syncVariants['locale'] = "en";
+        $syncVariants['_method'] = "PUT";
+        $syncVariants['sku'] = $id;
+        $syncVariants['name'] = $productName;
+        $syncVariants['url_key'] = strtolower(str_replace('+', '-', urlencode($productName)));
+        $syncVariants['tax_category_id'] = "";
+        $syncVariants['new'] = true;
+        $syncVariants['featured'] = false;
+        $syncVariants['visible_individually'] = true;
+        $syncVariants['status'] = true;
+        $syncVariants['guest_checkout'] = true;
+        $syncVariants['color'] = "4";
+        $syncVariants['short_description'] = "";
+        $syncVariants['description'] = "";
+        $syncVariants['categories'] = ["1"];
+        $syncVariants['variants'] = [];
+        $syncVariants['channels'] = ["1"];
+        foreach ($storeProduct['sync_variants'] as $productVariant) {
+            $size = str_replace($productName. " - ", "", $productVariant['name']);
+            $sizeId = DB::table('attribute_options')->where('admin_name', $size)->first()->id;
 //                dd($productVariant, $sizeId,$productVariant['sync_product_id'] . '-variant-' . $sizeId );
-                $variantId = DB::table('products')->where('sku', $productVariant['sync_product_id'] . '-variant-' . $sizeId)->first()->id;
-
-                $variantData = [
-                    "sku" => $productVariant['sync_product_id'] . '-variant-' . $sizeId,
-                    "name" => $productVariant['name'],
-                    "size" => "{$sizeId}",
-                    "inventories" => [1 => "0"],
-                    "price" => $productVariant['retail_price'],
-                    "weight" => "1",
-                    "status" => "1"
-
-                ];
-                $syncVariants['variants'][$variantId] = $variantData;
-            }
-            $this->productRepository->update($syncVariants, $id);
+            $variantId = DB::table('products')->where('sku', $productVariant['sync_product_id'] . '-variant-' . $sizeId)->first()->id;
+            $variantData = [
+                "sku" => $productVariant['sync_product_id'] . '-variant-' . $sizeId,
+                "name" => $productVariant['name'],
+                "size" => "{$sizeId}",
+                "inventories" => [1 => "0"],
+                "price" => $productVariant['retail_price'],
+                "weight" => "1",
+                "status" => "1"
+            ];
+            $syncVariants['variants'][$variantId] = $variantData;
         }
-
+        $this->productRepository->update($syncVariants, $DBId);
     }
 
     public function addImageToDB($id, $name){
         DB::table('product_images')->insert([
-                'type' => null,
-                'path' => 'product/' . $id . '/' . $name,
-                'product_id' => $id
-            ]);
+            'type' => null,
+            'path' => 'product/' . $id . '/' . $name,
+            'product_id' => $id
+        ]);
     }
-
 }
