@@ -36,6 +36,12 @@
 <p>After we will add the following in the run function:</p>
 <pre><code>$this->call(PrintfulDatabaseSeeders::class);</code></pre>
 
+<p>We will now run the migration with</p>
+<pre><code>php artisan migrate</code></pre>
+
+<p>To make sure our routes are working we are going to clear the route cache</p>
+<pre><code>php artisan route:cache</code></pre>
+
 <p>Last but not least we will run npm to produce the frontend files needed. Once in the {bagisto root}/packages/SamiXSous/ directory run the code: <pre><code>npm run dev</code></pre> </p>
 
 <h5 id="once-these-two-lines-have-been-added-you-should-see-a-printful-tab-in-the-admin-section-of-your-bagisto-store%F0%9F%8E%89%F0%9F%A5%B3%F0%9F%99%8C%F0%9F%8F%BC">Once these lines have been added and you ran the commands you should see a Printful tab in the admin section of your Bagisto store!🎉🥳🙌🏼</h5>
