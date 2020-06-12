@@ -1,0 +1,30 @@
+{
+    "name": "printful/php-api-sdk",
+    "description": "Printful API wrapper",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Printful",
+            "email": "dev@theprintful.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Printful\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Printful\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable"
+}

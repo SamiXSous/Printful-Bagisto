@@ -2,6 +2,9 @@
     "name": "samixsous/printful-bagisto",
     "description": "A printful integration on the Bagisto framework",
     "type": "library",
+    "require": {
+        "printful/php-api-sdk": "^2.2"
+    },
     "autoload": {
         "psr-4": {
             "SamiXSous\\Printful\\": "src"
@@ -12,6 +15,5 @@
             "name": "SamiXSous",
             "email": "SamsonV.Evertsz@Gmail.com"
         }
-    ],
-    "require": {}
+    ]
 }
