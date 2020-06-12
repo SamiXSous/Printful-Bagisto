@@ -2,6 +2,15 @@
     "name": "samixsous/printful-bagisto",
     "description": "A printful integration on the Bagisto framework",
     "type": "library",
+    "autoload": {
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ],
+        "psr-4": {
+            "SamiXSous\\Printful\\": "src"
+        }
+    },
     "authors": [
         {
             "name": "SamiXSous",
