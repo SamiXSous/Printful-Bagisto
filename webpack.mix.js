@@ -3,9 +3,9 @@ const mix  = require("laravel-mix");
 require("laravel-mix-merge-manifest");
 //
 if (mix.inProduction()) {
-    var publicPath = "publishable/assets";
+    var publicPath = "public";
 } else {
-    var publicPath = "../../../public/vendor/samixsous/printful/assets";
+    var publicPath = "../../../public/vendor/samixsous/printful-bagisto/public";
 }
 
 mix.setPublicPath(publicPath).mergeManifest();
