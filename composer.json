@@ -1,0 +1,12 @@
+{
+    "name": "samixsous/printful-bagisto",
+    "description": "A printful integration on the Bagisto framework",
+    "type": "library",
+    "authors": [
+        {
+            "name": "SamiXSous",
+            "email": "SamsonV.Evertsz@Gmail.com"
+        }
+    ],
+    "require": {}
+}
