@@ -7,7 +7,7 @@
 @section('css')
     <link
         rel="stylesheet"
-        href="{{ asset('public/css/dashboard.css') }} "
+        href="{{ asset('css/dashboard.css') }} "
     />
 @stop
 
