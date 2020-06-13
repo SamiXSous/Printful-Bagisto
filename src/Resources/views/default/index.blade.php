@@ -7,7 +7,7 @@
 @section('css')
     <link
         rel="stylesheet"
-        href="{{ asset('vendor/samixsous/printful-bagisto/public/css/printfulDashboard.css') }} "
+        href="{{ asset('public/css/dashboard.css') }} "
     />
 @stop
 
